@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>pandorqs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Gothic';
+    src: local('Unifraktur Maguntia');
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+  html {
+    filter: grayscale(1);
+  }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #d8d8d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Cursor gótico decorativo — solo en pantallas con puntero fino (PC) */
+  @media (pointer: fine) {
+    body, a, button {
+      cursor: url('assets/cursor-gotico.png') 16 16, auto;
+    }
+  }
+
+  /* fondo con textura sutil */
+  .bg-glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 500px at 50% 30%, rgba(255,255,255, 0.10), transparent 70%),
+      radial-gradient(ellipse 800px 600px at 50% 100%, rgba(255,255,255,0.06), transparent 70%);
+    pointer-events: none;
+  }
+
+  .ornament {
+    position: absolute;
+    opacity: 0.16;
+    filter: grayscale(1) brightness(1.4);
+    pointer-events: none;
+    user-select: none;
+  }
+  .ornament.tl { top: -20px; left: -30px; width: 260px; transform: scaleX(-1); }
+  .ornament.br { bottom: -30px; right: -30px; width: 280px; }
+
+  .stage {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px;
+    text-align: center;
+    max-width: 90vw;
+  }
+
+  .portrait-wrap {
+    width: clamp(120px, 22vw, 190px);
+    height: clamp(120px, 22vw, 190px);
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid rgba(220,220,220,0.35);
+    box-shadow: 0 0 40px rgba(255,255,255,0.18), 0 0 0 6px rgba(0,0,0,0.6);
+    position: relative;
+  }
+  .portrait-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.1);
+  }
+
+  .name {
+    font-family: 'UnifrakturMaguntia', 'Georgia', serif;
+    font-size: clamp(2.2rem, 7vw, 3.6rem);
+    letter-spacing: 0.04em;
+    color: #f0f0f0;
+    text-shadow: 0 0 18px rgba(255,255,255,0.25);
+    margin-top: 4px;
+  }
+
+  .tagline {
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    line-height: 1.6;
+    color: #aaaaaa;
+    max-width: 460px;
+    font-style: italic;
+  }
+
+  .creed {
+    font-size: clamp(0.7rem, 1.6vw, 0.85rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #777777;
+    margin-top: 2px;
+  }
+
+  .links {
+    display: flex;
+    gap: 22px;
+    margin-top: 10px;
+  }
+  .links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(220,220,220,0.25);
+    color: #d8d8d8;
+    transition: all 0.25s ease;
+    opacity: 0.75;
+  }
+  .links a:hover {
+    opacity: 1;
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: 0 0 14px rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+  }
+  .links svg { width: 18px; height: 18px; fill: currentColor; }
+
+  .discord-note {
+    font-size: 0.7rem;
+    color: #666666;
+    letter-spacing: 0.03em;
+    margin-top: -4px;
+  }
+  .discord-note a { color: #999999; text-decoration: none; border-bottom: 1px solid rgba(150,150,150,0.3); }
+  .discord-note a:hover { color: #fff; }
+
+  /* botón de inicio de música */
+  .play-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  .play-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .play-btn {
+    background: transparent;
+    border: 1px solid rgba(220,220,220,0.4);
+    color: #d8d8d8;
+    font-family: 'Georgia', serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.15em;
+    padding: 16px 42px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+  .play-btn:hover {
+    border-color: rgba(255,255,255,0.8);
+    box-shadow: 0 0 22px rgba(255,255,255,0.3);
+    color: #fff;
+  }
+
+  @media (max-width: 480px) {
+    .ornament.tl, .ornament.br { width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="play-overlay" id="playOverlay">
+    <button class="play-btn" id="playBtn">click</button>
+  </div>
+
+  <audio id="bgAudio" loop preload="auto">
+    <source src="assets/musica.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="bg-glow"></div>
+  <img src="assets/ornamento1.jpg" class="ornament tl" alt="">
+  <img src="assets/ornamento1.jpg" class="ornament br" alt="">
+
+  <main class="stage">
+    <div class="portrait-wrap">
+      <img src="assets/personaje.png" alt="pandorqs">
+    </div>
+
+    <h1 class="name">pandorqs</h1>
+
+    <p class="tagline">
+      No me interesa nada. Solo quise crear esto porque está bonito.
+    </p>
+
+    <p class="creed">odio el scroll infinito &nbsp;·&nbsp; amo el desinterés</p>
+
+    <div class="links">
+      <a href="https://www.tiktok.com/@pandorq.s" target="_blank" rel="noopener" aria-label="TikTok">
+        <svg viewBox="0 0 24 24"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
+      </a>
+      <a href="https://discord.gg/sadicozz" target="_blank" rel="noopener" aria-label="Discord">
+        <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.292a.074.074 0 0 1 .078-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .079.009c.12.1.246.198.373.292a.077.077 0 0 1-.006.127 12.29 12.29 0 0 1-1.873.892.076.076 0 0 0-.04.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.001-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.029zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.955 2.418-2.157 2.418zm7.974 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      </a>
+    </div>
+
+    <p class="discord-note">mejor servidor de este mundo → <a href="https://discord.gg/sadicozz" target="_blank" rel="noopener">discord.gg/sadicozz</a></p>
+  </main>
+
+  <script>
+    const overlay = document.getElementById('playOverlay');
+    const btn = document.getElementById('playBtn');
+    const audio = document.getElementById('bgAudio');
+
+    btn.addEventListener('click', () => {
+      audio.play().catch(() => {});
+      overlay.classList.add('hidden');
+      setTimeout(() => overlay.style.display = 'none', 650);
+    });
+  </script>
+
+</body>
+</html>
